@@ -67,7 +67,7 @@ if(!isset($_SESSION['id'])){
           WHERE user_id='{$_SESSION['id']}'";
     $result=$db->query($sql);
     $data=$result->fetch_object();
-    if($data->jml>0){
+    if($data->jml>1){
       if($_POST['answer']=='Y'){
         $sql="DELETE FROM tmp_diseases
               WHERE user_id='{$_SESSION['id']}';"
@@ -75,7 +75,7 @@ if(!isset($_SESSION['id'])){
             ."INSERT INTO tmp_diseases (user_id,disease_code)
               SELECT '{$_SESSION['id']}',a.disease_code
               FROM tbl_relations a
-              JOIN tmp_analyzes b ON b.disease_code=a.disease_code
+              JOIN tmp_analyzes b USING(disease_code)
               WHERE b.symptom_code='{$_POST['symptom']}'
               GROUP BY a.disease_code
               ORDER BY a.disease_code;"
@@ -86,25 +86,21 @@ if(!isset($_SESSION['id'])){
             ."INSERT INTO tmp_analyzes (user_id, disease_code,symptom_code)
               SELECT b.user_id,a.disease_code,a.symptom_code
               FROM tbl_relations a
-              JOIN tmp_diseases b ON b.disease_code=a.disease_code
+              JOIN tmp_diseases b USING(disease_code)
               WHERE b.user_id='{$_SESSION['id']}'
               ORDER BY a.disease_code,a.symptom_code;"
               //- --
             ."INSERT INTO tmp_symptoms (user_id,symptom_code) 
               VALUES ('{$_SESSION['id']}','{$_POST['symptom']}')";
       }else{
-        $sql="DELETE FROM tmp_analyzes
-              WHERE disease_code IN(
-                SELECT disease_code
-                FROM tbl_relations
-                WHERE symptom_code='{$_POST['symptom']}')
+        $sql="DELETE tmp_analyzes FROM tmp_analyzes
+              JOIN tbl_relations a USING(disease_code)
+              WHERE a.symptom_code='{$_POST['symptom']}'
               AND user_id='{$_SESSION['id']}';"
               //- --
-            ."DELETE FROM tmp_diseases
-              WHERE disease_code IN(
-                SELECT disease_code
-                FROM tbl_relations
-                WHERE symptom_code='{$_POST['symptom']}')
+            ."DELETE tmp_diseases FROM tmp_diseases
+              JOIN tbl_relations a USING(disease_code)
+              WHERE a.symptom_code='{$_POST['symptom']}'
               AND user_id='{$_SESSION['id']}';";
       }
     }else{
@@ -117,7 +113,7 @@ if(!isset($_SESSION['id'])){
             ."INSERT INTO tmp_analyzes (user_id, disease_code,symptom_code)
               SELECT b.user_id,a.disease_code,a.symptom_code
               FROM tbl_relations a
-              JOIN tmp_diseases b ON b.disease_code=a.disease_code
+              JOIN tmp_diseases b USING(disease_code)
               WHERE b.user_id='{$_SESSION['id']}'
               ORDER BY a.disease_code,a.symptom_code;"
               //- --
@@ -125,35 +121,27 @@ if(!isset($_SESSION['id'])){
               VALUES ('{$_SESSION['id']}','{$_POST['symptom']}')";
       }else{
         $sql="INSERT INTO tmp_analyzes(user_id,disease_code,symptom_code)
-              SELECT '{$_SESSION['id']}',disease_code,symptom_code
-              FROM tbl_relations
-              WHERE disease_code NOT IN(
-                SELECT disease_code
-                FROM tbl_relations
-                WHERE symptom_code = '{$_POST['symptom']}')
-              ORDER BY disease_code,symptom_code;"
+              SELECT '{$_SESSION['id']}',a.disease_code,a.symptom_code
+              FROM tbl_relations a
+              LEFT JOIN tbl_relations b ON (a.disease_code=b.disease_code AND b.symptom_code = '{$_POST['symptom']}')
+              WHERE b.disease_code IS NULL
+              ORDER BY a.disease_code,a.symptom_code;"
               //- --
             ."INSERT INTO tmp_diseases(user_id,disease_code)
-              SELECT '{$_SESSION['id']}',disease_code
-              FROM tbl_relations
-              WHERE disease_code NOT IN( NOT
-                SELECT disease_code
-                FROM tbl_relations
-                WHERE symptom_code = '{$_POST['symptom']}')
-              GROUP BY disease_code;"
+              SELECT '{$_SESSION['id']}',a.disease_code
+              FROM tbl_relations a
+              LEFT JOIN tbl_relations b ON (a.disease_code=b.disease_code AND b.symptom_code = '{$_POST['symptom']}')
+              WHERE b.disease_code IS NULL
+              GROUP BY a.disease_code;"
               //- --
-             ."DELETE FROM tmp_analyzes
-              WHERE disease_code IN(
-                SELECT disease_code
-                FROM tbl_relations
-                WHERE symptom_code='{$_POST['symptom']}')
+             ."DELETE tmp_analyzes FROM tmp_analyzes
+              JOIN tbl_relations a USING(disease_code)
+              WHERE a.symptom_code='{$_POST['symptom']}'
               AND user_id='{$_SESSION['id']}';"
               //- --
-            ."DELETE FROM tmp_diseases
-              WHERE disease_code IN(
-                SELECT disease_code
-                FROM tbl_relations
-                WHERE symptom_code='{$_POST['symptom']}')
+            ."DELETE tmp_diseases FROM tmp_diseases
+              JOIN tbl_relations a USING(disease_code)
+              WHERE a.symptom_code='{$_POST['symptom']}'
               AND user_id='{$_SESSION['id']}';";
             //
       }
