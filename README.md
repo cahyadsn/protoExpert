@@ -2,6 +2,9 @@
 protoExpert is small PHP prototype Expert System application
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/cahyadsn/protoExpert.svg)](https://github.com/cahyadsn/protoExpert/issues)
+[![GitHub forks](https://img.shields.io/github/forks/cahyadsn/protoExpert.svg)](https://github.com/cahyadsn/protoExpert/network)
+[![GitHub stars](https://img.shields.io/github/stars/cahyadsn/protoExpert.svg)](https://github.com/cahyadsn/protoExpert/stargazers)
 
 ## Installation
 
